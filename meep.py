@@ -75,6 +75,8 @@ t_GE            = r'>='
 t_GT            = r'>'
 t_EQ            = r'\=\='
 t_NE            = r'\!\='
+t_AND           = r'\&'
+t_OR            = r'\|'         
 t_COLON         = r'\:'
 t_SEMICOLON     = r'\;'
 t_COMA          = r'\,'
@@ -117,12 +119,11 @@ def t_error(t):
 
 lexer = lex.lex()
 
+# data = input('meep ')
+# lexer.input(data)
 
-data = input('meep ')
-lexer.input(data)
-
-while True:
-    tok = lexer.token()
-    if not tok:
-        break      # No more input
-    print(tok)
+# while True:
+#     tok = lexer.token()
+#     if not tok:
+#         break      # No more input
+#     print(tok)
