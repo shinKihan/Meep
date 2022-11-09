@@ -48,6 +48,8 @@ tokens = [
     'GE',
     'EQ',
     'NE',
+    'AND',
+    'OR',
     'ASSIGN',
     'COLON',
     'SEMICOLON',
