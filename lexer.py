@@ -8,7 +8,6 @@ reserved_words = {
     'inswae'    : 'WRITE',
     'man'       : 'IF',
     'tto'       : 'ELSE',
-    'hada'      : 'DO',
     'dong'      : 'WHILE',
     'gijun'     : 'FUNCTION',
     'banpum'    : 'RETURN',
@@ -17,11 +16,10 @@ reserved_words = {
     'tteuda'    : 'FLOAT',
     'kkeun'     : 'STRING',
     'muhyoui'   : 'VOID',
-    'keugi'     : 'SIZE',
+    'tong'      : 'STATS',
     'pyeong'    : 'MEAN',
     'jung'      : 'MEDIAN',
     'byeon'     : 'VARIANCE',
-    'std'       : 'STD',
     'habji'     : 'SUM',
     'bun'       : 'MIN',
     'choe'      : 'MAX',
@@ -56,10 +54,10 @@ tokens = [
     'COMA',
     'LPAREN',
     'RPAREN',
-    'L_SBRKT',
-    'R_SBRKT',
-    'L_CURLY',
-    'R_CURLY'
+    'LBRKT',
+    'RBRKT',
+    'LCURLY',
+    'RCURLY'
 ] + list(reserved_words.values())
 
 t_EXPONENT      = r'\^'
@@ -84,10 +82,10 @@ t_SEMICOLON     = r'\;'
 t_COMA          = r'\,'
 t_LPAREN        = r'\('
 t_RPAREN        = r'\)'
-t_L_SBRKT       = r'\['
-t_R_SBRKT       = r'\]'
-t_L_CURLY       = r'\{'
-t_R_CURLY       = r'\}'
+t_LBRKT       = r'\['
+t_RBRKT       = r'\]'
+t_LCURLY       = r'\{'
+t_RCURLY       = r'\}'
 
 t_ignore = ' \t\n\r\f'
 

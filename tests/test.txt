@@ -1,3 +1,15 @@
 sijag meep:
-5+(1-5)<meep;
+muhyoui gibon(){
+    man (x>2){
+        man(x>2){
+            meep(10,12);
+        }
+    }
+    man (x>2){
+        man(x>2){
+            meep(10,12);
+            tong : habji(meep);
+        }
+    }  
+}
 kkeut

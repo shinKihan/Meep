@@ -1,0 +1,18 @@
+sijag meep:
+
+heolag jeo rapi[1];
+
+gijun muhyoui meep(){
+    tong : byeon(hola);
+    tong : byeon(como);
+    tong : byeon(estas);
+}
+
+muhyoui gibon(){
+    meep;
+    meep;
+    meep;
+    meep;
+    
+}
+kkeut

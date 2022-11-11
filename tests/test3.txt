@@ -1,0 +1,5 @@
+sijag meep:
+muhyoui gibon(){
+    4+4-2/10^2/2//4 > 3 ;
+}
+kkeut

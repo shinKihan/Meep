@@ -19,11 +19,23 @@ Cube = {
     '|'    : [[None, None, None, None, None],            [None, None, None, None, None],            [None, None, None, None, None],          [None, None, None, 'bool', 'bool'],  [None, None, None, None, None]]
 }
 
+def translate(op):
+    if op == 'int':
+        return 0
+    elif op == 'float':
+        return 1
+    elif op == 'string':
+        return 2 
+    elif op == 'bool':
+        return 3
+    else:
+        return 4
+
 def fetch(coord):
     if len(coord) == 2:
-        opr, op = coord
+        opr, op = coord[0],translate(coord[1])
         res = Cube[opr][op]
     else:
-        opr, op1, op2 = coord
+        opr, op1, op2 = coord[0],translate(coord[1]),translate(coord[2])
         res = Cube[opr][op1][op2]
     return res
