@@ -39,3 +39,4 @@ def fetch(coord):
         opr, op1, op2 = coord[0],translate(coord[1]),translate(coord[2])
         res = Cube[opr][op1][op2]
     return res
+    

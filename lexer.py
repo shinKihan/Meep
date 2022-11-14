@@ -15,6 +15,7 @@ reserved_words = {
     'jeo'       : 'INT',
     'tteuda'    : 'FLOAT',
     'kkeun'     : 'STRING',
+    'buul'      : 'BOOL',
     'muhyoui'   : 'VOID',
     'tong'      : 'STATS',
     'pyeong'    : 'MEAN',
@@ -32,6 +33,8 @@ tokens = [
     'CTE_I',
     'CTE_F',
     'CTE_S',
+    'TRUE',
+    'FALSE',
     'EXPONENT',
     'MOD',
     'PERCENT',
@@ -86,9 +89,10 @@ t_LBRKT       = r'\['
 t_RBRKT       = r'\]'
 t_LCURLY       = r'\{'
 t_RCURLY       = r'\}'
+t_TRUE         = r'true'
+t_FALSE        = r'false'
 
 t_ignore = ' \t\n\r\f'
-
 
 def t_ID(t):
     r'[a-zA-Z_]\w*'

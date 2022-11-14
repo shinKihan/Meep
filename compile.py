@@ -5,9 +5,20 @@ from auxiliar import *
 #Begining of grammar
 def p_prog(p):
     """
-    prog : START ID COLON global END 
+    prog : START env ID COLON global END 
     """
-    p[0] = p[1],p[2],p[3],p[4],p[5]
+    p[0] = p[1],p[3],p[4],p[5],p[6]
+
+def p_env(p):
+    """
+    env :
+    """
+    if p[-1]=='sijag':
+        cuadruplos.append(['GotoMain', None, None, None])
+        env.append(-2)
+    elif p[-1]=='gibon':
+        cuadruplos[0][3]=len(cuadruplos)
+        env[0] = -1
 
 def p_global(p):
     """
@@ -51,9 +62,9 @@ def p_fun(p):
 
 def p_main(p):
     """
-    main : VOID MAIN LPAREN RPAREN LCURLY block RCURLY 
+    main : VOID MAIN env LPAREN RPAREN LCURLY block RCURLY 
     """
-    p[0] = p[1],p[2],p[3],p[4],p[5],p[6],p[7]
+    p[0] = p[1],p[2],p[4],p[5],p[6],p[7],p[8]
 
 #Linear statement
 def p_next(p):
@@ -100,11 +111,23 @@ def p_dimvar(p):
     if p[1]:
         p[0] = p[1],p[2],p[3],p[4]
 
+#variable logic
+def p_addvariable(p):
+    """
+    addvariable :
+    """
+    var = check(p[-1],'variable')
+    if not var:
+        print(f'오류: 변수가 {p[-1]} 존재하지 않습니다')
+        quit()
+    symbolstack.append(var[0])
+    typestack.append(var[1])
+
 def p_var(p):
     """
-    var : ID dimvar
+    var : ID addvariable dimvar
     """
-    p[0] = p[1],p[2]
+    p[0] = p[1],p[3]
 
 def p_assign(p):
     """
@@ -128,21 +151,44 @@ def p_array(p):
     if p[1]:
         p[0] = p[1],p[2],p[3],p[4]    
 
+# declaration functionality
+def p_createvariable(p):
+    """
+    createvariable : 
+    """
+    createvariable(p[-3],p[-4])
+
 def p_declare(p):
     """
-    declare : VAR type ID array SEMICOLON
-    """
-    p[0] = p[1],p[2],p[3],p[4],p[5]
-    
-def p_read(p):
-    """
-    read : READ LPAREN ID RPAREN SEMICOLON
+    declare : VAR type ID array SEMICOLON createvariable
     """
     p[0] = p[1],p[2],p[3],p[4],p[5]
 
+#Read fuctionality   
+def p_readassign(p):
+    """
+    readassign : 
+    """
+    cuadruplos.append(['Read', None, None, p[-3]])
+
+def p_read(p):
+    """
+    read : READ LPAREN ID RPAREN SEMICOLON readassign
+    """
+    p[0] = p[1],p[2],p[3],p[4],p[5]
+
+#Print fuctionality
+def p_print(p):
+    """
+    print :
+    """
+    # content = check(symbolstack.pop(),'variable')
+    typestack.pop()
+    cuadruplos.append(['Write', None, None, symbolstack.pop()])
+
 def p_write(p):
     """
-    write : WRITE LPAREN logic RPAREN SEMICOLON
+    write : WRITE LPAREN logic RPAREN SEMICOLON print
     """
     p[0] = p[1],p[2],p[3],p[4],p[5]
 
@@ -151,12 +197,23 @@ def p_return(p):
     return : RETURN expression
     """
     p[0] = p[1],p[2]
+    if env < 1:
+        print("오류: 이 컨텍스트에서 반환할 수 없습니다.")
+        quit()
+    type = typestack.pop()
+    if (type == 'int' and env > 0) or (type == 'float' and env != 1) \
+        or (type == 'string' and env != 2) or (type == 'bool' and env != 3): 
+        print("오류: 유형 불일치.")
+        quit()
+    #return here
+    cuadruplos.append(['Return', None, None, symbolstack.pop()])
 
 def p_type(p):
     """
     type : INT
          | FLOAT
          | STRING
+         | BOOL
     """
     p[0] = p[1]
 
@@ -186,7 +243,7 @@ def p_pop(p):
     """
     pop : 
     """
-    if typestack:
+    if symbolstack:
        symbolstack.pop()
        typestack.pop()
 
@@ -196,11 +253,23 @@ def p_pushoperator(p):
     """
     opstack.append(p[-1])
 
+def p_popparen(p):
+    """
+    popparen :
+    """
+    opstack.pop()
+
 def p_addexpresion(p):
     """
     addexpresion :
     """
     addexpresion(p[-3])
+
+def p_addnegative(p):
+    """
+    addnegative :
+    """
+    addexpresion(p[-3],True)
 
 def p_expression(p):
     """
@@ -296,7 +365,7 @@ def p_exp(p):
 def p_unary(p):
     """
     unary : factor
-          | MINUS factor
+          | MINUS pushoperator factor addnegative
     """
     if len(p)>2:
         p[0] = p[1],p[2]
@@ -305,13 +374,13 @@ def p_unary(p):
 
 def p_factor(p):
     """
-    factor : LPAREN logic RPAREN 
+    factor : LPAREN pushoperator logic RPAREN popparen
            | value
            | var
            | call
     """
     if len(p)>2:
-        p[0] = p[1],p[2],p[3]
+        p[0] = p[1],p[3],p[4]
     else:
         p[0] = p[1]
 
@@ -337,11 +406,19 @@ def p_call(p):
     """
     p[0] = p[1],p[2],p[3],p[4]
 
+def p_boolean(p):
+    """
+    boolean : TRUE
+            | FALSE
+    """
+    p[0] = p[1]
+
 def p_value(p):
     """
     value : CTE_I addint
           | CTE_F addfloat
           | CTE_S addstring
+          | boolean addbool
     """
     p[0] = p[1]
 
@@ -363,6 +440,11 @@ def p_addstring(p):
     """
     addconstant(p, 'string')
 
+def p_addbool(p):
+    """
+    addbool :
+    """
+
 #statistical function
 def p_statfun(p):
     """
@@ -380,11 +462,21 @@ def p_statfun(p):
     else:
         p[0] = p[1],p[2],p[3],p[4]
     
+def p_createstats(p):
+    """
+    createstats :
+    """
+    #return here
+    if p[-1][0] == 'suljib':
+        cuadruplos.append([p[-1][0], None, p[-1][2], p[-1][4]])
+    else:
+        cuadruplos.append([p[-1][0], None, None, p[-1][2]])
+
 def p_stats(p):
     """
-    stats : STATS COLON statfun SEMICOLON
+    stats : STATS COLON statfun createstats SEMICOLON
     """
-    p[0] = p[1],p[2],p[3],p[4]
+    p[0] = p[1],p[2],p[3],p[5]
 
 def p_empty(p):
     """
@@ -393,15 +485,18 @@ def p_empty(p):
     p[0] = None
 
 def p_error(p):
-    print("구문 오류")
+    print(f"구문 오류 '{p.value}'")
+    quit()
 
 parse = yacc.yacc()
 test = open(input("meep "))
 source = test.read()
 test.close()
 result = parse.parse(source)
-print(result)
-print(symbolstack)
-print(typestack)
-print(constant_table)
-print(cuadruplos)
+print("parsed:",result)
+print("symbols:",symbolstack)
+print("operators:",opstack)
+print("types:",typestack)
+print("constants:",constant_table)
+print("quads:",cuadruplos)
+print("vars:",var_table)

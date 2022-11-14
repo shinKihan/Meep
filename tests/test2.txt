@@ -9,10 +9,6 @@ gijun muhyoui meep(){
 }
 
 muhyoui gibon(){
-    meep;
-    meep;
-    meep;
-    meep;
-    
+   4+2;
 }
 kkeut
