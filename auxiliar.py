@@ -153,3 +153,19 @@ def createvariable(id, type):
             address = global_bool[0]+global_bool[1]
             global_bool[1]+=1
     var_table.append([id,type,address,1])
+
+def finder(temporal = False):
+    # print(symbolstack) return here
+    if not temporal:
+        var = symbolstack.pop()
+    else:
+        return symbolstack[-1]
+    symbol = check(var, 'constant')
+    print(symbol)
+    if not symbol:
+        symbol = check(var, 'variable')
+    if not symbol:
+        print(f'오류: 변수가 {symbol} 존재하지 않습니다')
+        quit()
+    print(symbol)
+    return symbol

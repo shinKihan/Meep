@@ -1,15 +1,8 @@
 sijag meep:
 muhyoui gibon(){
-    man (x>2){
-        man(x>2){
-            meep(10,12);
-        }
+    dong (3>2){
+        2+1;
     }
-    man (x>2){
-        man(x>2){
-            meep(10,12);
-            tong : habji(meep);
-        }
-    }  
+    3*4;
 }
 kkeut

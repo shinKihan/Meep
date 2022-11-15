@@ -5,9 +5,19 @@ from auxiliar import *
 #Begining of grammar
 def p_prog(p):
     """
-    prog : START env ID COLON global END 
+    prog : START env ID COLON global END endprog
     """
     p[0] = p[1],p[3],p[4],p[5],p[6]
+
+def p_endprog(p):
+    """
+    endprog :
+    """
+    cuadruplos.append(['End', None, None, None])
+    with open(f'{p[-4]}.obj','w') as file:
+        for cuad in cuadruplos:
+            line = f'{cuad[0]},{cuad[1]},{cuad[2]},{cuad[3]}\n'
+            file.write(line)
 
 def p_env(p):
     """
@@ -116,7 +126,9 @@ def p_addvariable(p):
     """
     addvariable :
     """
+    # print(p[-1])
     var = check(p[-1],'variable')
+    # print(var)
     if not var:
         print(f'오류: 변수가 {p[-1]} 존재하지 않습니다')
         quit()
@@ -129,9 +141,25 @@ def p_var(p):
     """
     p[0] = p[1],p[3]
 
+#return here
+def p_assignvalue(p):
+    """
+    assignvalue :
+    """
+    # print(symbolstack)
+    right_value, right_type = finder(True), typestack.pop()
+    left_value, left_type= finder(True), typestack.pop()
+    print(left_value, right_value, p[-2])
+    # quit()
+    semantic = fetch((p[-2], left_type, right_type))
+    if not semantic:
+        print(f'불법 문자: 정수와 문자열 {p[-2]} 사이의 연산을 {left_type} 수 {right_type}.')
+        quit()
+    cuadruplos.append([p[-2], None, right_type, left_type])
+
 def p_assign(p):
     """
-    assign : var ASSIGN expression
+    assign : var ASSIGN expression assignvalue
     """
     p[0] = p[1],p[2],p[3]
 
@@ -156,7 +184,16 @@ def p_createvariable(p):
     """
     createvariable : 
     """
-    createvariable(p[-3],p[-4])
+    type = None
+    if p[-4] == 'jeo':
+        type = 'int'
+    elif p[-4] == 'tteuda':
+        type = 'float'
+    elif p[-4] == 'kkeun':
+        type = 'string'
+    elif p[-4] == 'buul':
+        type = 'bool'    
+    createvariable(p[-3],type)
 
 def p_declare(p):
     """
@@ -218,25 +255,69 @@ def p_type(p):
     p[0] = p[1]
 
 #Compound statement
+def p_beginwhile(p):
+    """
+    beginwhile :
+    """
+    jumpstack.append(len(cuadruplos))
+
+#come back later
+def p_checklogic(p):
+    """
+    checklogic :
+    """
+    type = typestack.pop()
+    if type != 'bool':
+        print('오류: 표현식이 부울이 아닙니다.')
+        quit()
+    result = symbolstack.pop()
+    cuadruplos.append(['GotoF', result, None, None])
+    jumpstack.append(len(cuadruplos)-1)
+
+def p_endwhile(p):
+    """
+    endwhile :
+    """
+    end = jumpstack.pop()
+    goback = jumpstack.pop()
+    cuadruplos.append(['Goto', None, None, goback])
+    cuadruplos[end][3] = len(cuadruplos)
+
 def p_while(p):
     """
-    while : WHILE LPAREN logic RPAREN LCURLY block RCURLY
+    while : WHILE beginwhile LPAREN logic checklogic RPAREN LCURLY block RCURLY endwhile
     """
-    p[0] = p[1],p[2],p[3],p[4],p[5],p[6],p[7]
+    p[0] = p[1],p[3],p[4],p[6],p[7],p[8],p[9]
+
+def p_beginelse(p):
+    """
+    beginelse :
+    """
+    cuadruplos.append(['Goto', None, None, None])
+    on_false = jumpstack.pop()
+    jumpstack.append(len(cuadruplos)-1)
+    cuadruplos[on_false][3] = len(cuadruplos)
+
+def p_endif(p):
+    """
+    endif :
+    """
+    end = jumpstack.pop()
+    cuadruplos[end][3] = len(cuadruplos)
 
 def p_else(p):
     """
-    else : ELSE LCURLY block RCURLY
+    else : ELSE beginelse LCURLY block RCURLY
          | empty
     """
     if p[1]:
-        p[0] = p[1],p[2],p[3],p[4]
+        p[0] = p[1],p[3],p[4],p[5]
 
 def p_if(p):
     """
-    if : IF LPAREN logic RPAREN LCURLY block RCURLY else
+    if : IF LPAREN logic checklogic RPAREN LCURLY block RCURLY else endif
     """
-    p[0] = p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8]
+    p[0] = p[1],p[2],p[3],p[5],p[6],p[7],p[8],p[9]
 
 #Begining of expresion
 def p_pop(p):
@@ -498,5 +579,6 @@ print("symbols:",symbolstack)
 print("operators:",opstack)
 print("types:",typestack)
 print("constants:",constant_table)
-print("quads:",cuadruplos)
+# print("quads:",cuadruplos)
 print("vars:",var_table)
+print("jumps:", jumpstack)

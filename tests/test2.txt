@@ -1,6 +1,6 @@
 sijag meep:
 
-heolag jeo rapi[1];
+heolag jeo rapi;
 
 gijun muhyoui meep(){
     tong : byeon(hola);
@@ -9,6 +9,6 @@ gijun muhyoui meep(){
 }
 
 muhyoui gibon(){
-   4+2;
+    rapi = 4+2;
 }
 kkeut
