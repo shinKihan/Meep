@@ -32,6 +32,7 @@ temporal_bool = [15_000,0]
 constant_int = [17_000,0]
 constant_float = [18_000,0]
 constant_string = [19_000,0]
+constant_bool = [20_000,0]
 
 #auxiliary functions
 def check(id, tablename):
@@ -49,9 +50,9 @@ def check(id, tablename):
             if row[0] != id:
                 continue
             else:
-                if env[0] < -1 and 1000 <= row[2] < 5000:
+                if env[0] < -1 and 1000 <= row[1] < 5000:
                     return row
-                elif env[0] >= -1 and 5000 <= row[2] < 9000:
+                elif env[0] >= -1 and 5000 <= row[1] < 9000:
                     return row
 
     elif tablename == 'variable':
@@ -64,10 +65,10 @@ def check(id, tablename):
                     return row
     return False
 
-def addconstant(p, const):
-    symbolstack.append(p[-1])
-    typestack.append(const)
-
+def addconstant(p, const, append = True):
+    if append:
+        symbolstack.append(p[-1])
+        typestack.append(const)
     if check(p[-1],'constant'):
         return check(p[-1],'constant')
     else:
@@ -84,14 +85,35 @@ def addconstant(p, const):
         elif const == 'string':
             address=constant_string[0]+constant_string[1]
             constant_string[1]+=1
-
+        
+        elif const == "bool":
+            if p[-1] == 'true':
+                address=20000
+            else:
+                address=20001
     constant_table.append([p[-1],address])
 
-def addtemporary():
+def addtemporary(type, append = True):
+    if type == 'int':
+        address = temporal_int[0]+temporal_int[1]
+        temporal_int[1] += 1
+    elif type == 'float':
+        address = temporal_float[0]+temporal_float[1]
+        temporal_float[1] += 1
+    elif type == 'string':
+        address = temporal_string[0]+temporal_string[1]
+        temporal_string[1] += 1
+    elif type == 'bool':
+        address = temporal_bool[0]+temporal_bool[1]
+        temporal_bool[1] += 1
     global temp
     temp+=1
     t = f't{temp}'
-    return t
+    if append:
+        typestack.append(type)
+        symbolstack.append(t)
+    var_table.append([t, address, type, 1])
+    return address
 
 def addexpresion(op, negative=False):
     fullsize = len(opstack)
@@ -109,16 +131,14 @@ def addexpresion(op, negative=False):
         if not semantic:
             print(f'불법 문자: 정수와 문자열 {operator} 사이의 연산을 {left_type} 수 {right_type}.')
             quit()
-        right_val = symbolstack.pop()
-        t=addtemporary()
+        right_address = finder()
         if not negative:
-            left_val = symbolstack.pop()
-            cuadruplos.append([operator, left_val, right_val, t])
-            typestack.append(semantic)
+            left_address = finder()
+            t = addtemporary(semantic)
+            cuadruplos.append([operator, left_address, right_address, t])
         else:
-            cuadruplos.append([operator, None, right_val, t])
-            typestack.append(right_type)
-        symbolstack.append(t)
+            t = addtemporary(semantic)
+            cuadruplos.append([operator, None, right_address, t])
 
 def createvariable(id, type):
     if check(id,'declaration'):
@@ -152,20 +172,16 @@ def createvariable(id, type):
         else:
             address = global_bool[0]+global_bool[1]
             global_bool[1]+=1
-    var_table.append([id,type,address,1])
+    var_table.append([id,address, type,1])
 
-def finder(temporal = False):
+def finder(var = None):
     # print(symbolstack) return here
-    if not temporal:
+    if not var:
         var = symbolstack.pop()
-    else:
-        return symbolstack[-1]
     symbol = check(var, 'constant')
-    print(symbol)
     if not symbol:
         symbol = check(var, 'variable')
     if not symbol:
         print(f'오류: 변수가 {symbol} 존재하지 않습니다')
         quit()
-    print(symbol)
-    return symbol
+    return symbol[1]

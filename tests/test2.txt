@@ -1,14 +1,14 @@
-sijag meep:
+sijag test2:
 
 heolag jeo rapi;
 
-gijun muhyoui meep(){
-    tong : byeon(hola);
-    tong : byeon(como);
-    tong : byeon(estas);
-}
-
 muhyoui gibon(){
-    rapi = 4+2;
+    rapi = 1;
+    2+rapi;
+    2-3.0;
+    2/3;
+    2^4;
+    2//2;
+    2*5;
 }
 kkeut

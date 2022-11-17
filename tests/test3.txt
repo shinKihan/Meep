@@ -2,8 +2,15 @@ sijag meep:
 heolag jeo hola;
 heolag jeo hi;
 muhyoui gibon(){
-    4+4-2/10^2/2//4 > 3 ;
+    4+4-2/10^2/2//4 > 3;
     heolag jeo hola;
     inswae(hola);
+    man(2>3){
+       tong : habji(hola);
+    }tto {
+        dong (3<10){
+          2+10;  
+        }
+    }
 }
 kkeut

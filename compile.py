@@ -14,9 +14,13 @@ def p_endprog(p):
     endprog :
     """
     cuadruplos.append(['End', None, None, None])
+    export = constant_table+['qu']+cuadruplos
     with open(f'{p[-4]}.obj','w') as file:
-        for cuad in cuadruplos:
-            line = f'{cuad[0]},{cuad[1]},{cuad[2]},{cuad[3]}\n'
+        for cuad in export:
+            if len(cuad) == 4:
+                line = f'{cuad[0]},{cuad[1]},{cuad[2]},{cuad[3]}\n'
+            else:
+                line = f'{cuad[0]},{cuad[1]}\n'
             file.write(line)
 
 def p_env(p):
@@ -126,14 +130,12 @@ def p_addvariable(p):
     """
     addvariable :
     """
-    # print(p[-1])
     var = check(p[-1],'variable')
-    # print(var)
     if not var:
         print(f'오류: 변수가 {p[-1]} 존재하지 않습니다')
         quit()
     symbolstack.append(var[0])
-    typestack.append(var[1])
+    typestack.append(var[2])
 
 def p_var(p):
     """
@@ -146,16 +148,13 @@ def p_assignvalue(p):
     """
     assignvalue :
     """
-    # print(symbolstack)
-    right_value, right_type = finder(True), typestack.pop()
-    left_value, left_type= finder(True), typestack.pop()
-    print(left_value, right_value, p[-2])
-    # quit()
+    right_address, right_type = finder(), typestack.pop()
+    left_address, left_type= finder(), typestack.pop()
     semantic = fetch((p[-2], left_type, right_type))
     if not semantic:
         print(f'불법 문자: 정수와 문자열 {p[-2]} 사이의 연산을 {left_type} 수 {right_type}.')
         quit()
-    cuadruplos.append([p[-2], None, right_type, left_type])
+    cuadruplos.append([p[-2], None, right_address, left_address])
 
 def p_assign(p):
     """
@@ -206,7 +205,7 @@ def p_readassign(p):
     """
     readassign : 
     """
-    cuadruplos.append(['Read', None, None, p[-3]])
+    cuadruplos.append(['Read', None, None, finder(p[-3])])
 
 def p_read(p):
     """
@@ -219,9 +218,8 @@ def p_print(p):
     """
     print :
     """
-    # content = check(symbolstack.pop(),'variable')
     typestack.pop()
-    cuadruplos.append(['Write', None, None, symbolstack.pop()])
+    cuadruplos.append(['Write', None, None, finder()])
 
 def p_write(p):
     """
@@ -243,7 +241,7 @@ def p_return(p):
         print("오류: 유형 불일치.")
         quit()
     #return here
-    cuadruplos.append(['Return', None, None, symbolstack.pop()])
+    cuadruplos.append(['Return', None, None, finder()])
 
 def p_type(p):
     """
@@ -270,7 +268,7 @@ def p_checklogic(p):
     if type != 'bool':
         print('오류: 표현식이 부울이 아닙니다.')
         quit()
-    result = symbolstack.pop()
+    result = finder()
     cuadruplos.append(['GotoF', result, None, None])
     jumpstack.append(len(cuadruplos)-1)
 
@@ -525,7 +523,8 @@ def p_addbool(p):
     """
     addbool :
     """
-
+    addconstant(p, 'bool')
+    
 #statistical function
 def p_statfun(p):
     """
@@ -549,9 +548,9 @@ def p_createstats(p):
     """
     #return here
     if p[-1][0] == 'suljib':
-        cuadruplos.append([p[-1][0], None, p[-1][2], p[-1][4]])
+        cuadruplos.append([p[-1][0], None, check(p[-1][2], 'variable')[1], check(p[-1][4], 'variable')[1]])
     else:
-        cuadruplos.append([p[-1][0], None, None, p[-1][2]])
+        cuadruplos.append([p[-1][0], None, None, check(p[-1][2], 'variable')[1]])
 
 def p_stats(p):
     """

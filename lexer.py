@@ -25,7 +25,9 @@ reserved_words = {
     'bun'       : 'MIN',
     'choe'      : 'MAX',
     'hiseu'     : 'HIST',
-    'suljib'    : 'BAR'
+    'suljib'    : 'BAR',
+    'true'      : 'TRUE',
+    'false'     : 'FALSE'
 }
 
 tokens = [
@@ -33,8 +35,6 @@ tokens = [
     'CTE_I',
     'CTE_F',
     'CTE_S',
-    'TRUE',
-    'FALSE',
     'EXPONENT',
     'MOD',
     'PERCENT',
@@ -89,9 +89,6 @@ t_LBRKT       = r'\['
 t_RBRKT       = r'\]'
 t_LCURLY       = r'\{'
 t_RCURLY       = r'\}'
-t_TRUE         = r'true'
-t_FALSE        = r'false'
-
 t_ignore = ' \t\n\r\f'
 
 def t_ID(t):
