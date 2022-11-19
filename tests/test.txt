@@ -1,5 +1,13 @@
 sijag meep:
+
+gijun muhyoui test(){
+    heolag jeo sepa;
+    sepa = 20;
+    inswae(sepa);
+}
+
 muhyoui gibon(){
- inswae("hello world");
+    heolag jeo hola;
+    test();
 }
 kkeut

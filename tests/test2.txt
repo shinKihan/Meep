@@ -4,11 +4,26 @@ heolag jeo rapi;
 
 muhyoui gibon(){
     rapi = 1;
-    2+rapi;
+    inswae("escribe");
+    iblyeog(rapi);
+    rapi=2+rapi;
+    inswae(rapi);
     2-3.0;
     2/3;
     2^4;
     2//2;
     2*5;
+    man(rapi>12 & true){
+        inswae("meep");
+    }
+    tto{
+        inswae("hello world!");
+    }
+
+    dong(rapi > 0){
+        inswae("Nerf Compiladores Plz to broken asf");
+        rapi=rapi-1;
+    }
+    inswae("Op");
 }
 kkeut

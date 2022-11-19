@@ -1,0 +1,15 @@
+sijag factorial:
+
+muhyoui gibon(){
+    heolag jeo n;
+    heolag jeo r;
+    inswae("escribir numero");
+    iblyeog(n);
+    r=1;
+    dong(n > 0){
+        r = r*n;
+        n = n-1;
+    }
+    inswae(r);
+}
+kkeut

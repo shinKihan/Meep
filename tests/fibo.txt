@@ -1,0 +1,33 @@
+sijag fibo:
+
+muhyoui gibon(){
+    heolag jeo a;
+    heolag jeo b;
+    heolag jeo c;
+    heolag jeo x;
+    heolag jeo n;
+
+    a = 0;
+    b = 1;
+
+    inswae("escribir numero");
+    iblyeog(n);
+
+    man(n == 0){
+        inswae(a);
+    } tto{
+        man(n == 1){
+            inswae(b);
+        }tto{
+            x = 2;
+            dong(x < n+1){
+                c = a+b;
+                a = b;
+                b = c;
+                x = x+1;
+            }
+            inswae(b);
+        }
+    }
+}
+kkeut

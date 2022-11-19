@@ -5,9 +5,9 @@ from auxiliar import *
 #Begining of grammar
 def p_prog(p):
     """
-    prog : START env ID COLON global END endprog
+    prog : START ID env COLON global END endprog
     """
-    p[0] = p[1],p[3],p[4],p[5],p[6]
+    p[0] = p[1],p[2],p[4],p[5],p[6]
 
 def p_endprog(p):
     """
@@ -15,7 +15,7 @@ def p_endprog(p):
     """
     cuadruplos.append(['End', None, None, None])
     export = constant_table+['qu']+cuadruplos
-    with open(f'{p[-4]}.obj','w') as file:
+    with open(f'{p[-5]}.obj','w') as file:
         for cuad in export:
             if len(cuad) == 4:
                 line = f'{cuad[0]},{cuad[1]},{cuad[2]},{cuad[3]}\n'
@@ -27,13 +27,8 @@ def p_env(p):
     """
     env :
     """
-    if p[-1]=='sijag':
-        cuadruplos.append(['GotoMain', None, None, None])
-        env.append(-2)
-    elif p[-1]=='gibon':
-        cuadruplos[0][3]=len(cuadruplos)
-        env[0] = -1
-
+    enviroment(p)
+            
 def p_global(p):
     """
     global : declare global
@@ -52,6 +47,12 @@ def p_funtype(p):
     """
     p[0] = p[1]
 
+def p_addparams(p):
+    """
+    addparams :
+    """
+    addparams(p)
+
 def p_moreparam(p):
     """
     moreparam : moreparam COMA type ID 
@@ -68,11 +69,17 @@ def p_funparam(p):
     if p[1]:
         p[0] = p[1],p[2],p[3]
 
+def p_endfun(p):
+    '''
+    endfun :
+    '''
+    endfun()
+
 def p_fun(p):
     """
-    fun : FUNCTION funtype ID LPAREN funparam RPAREN LCURLY block RCURLY 
+    fun : FUNCTION funtype ID env LPAREN funparam addparams RPAREN LCURLY block RCURLY endfun 
     """
-    p[0] = p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9]
+    p[0] = p[1],p[2],p[3],p[5],p[6],p[8],p[9],p[10],p[11]
 
 def p_main(p):
     """
@@ -569,15 +576,15 @@ def p_error(p):
     quit()
 
 parse = yacc.yacc()
-test = open(input("meep "))
+test = open(input("컴파일할 이름 파일: "))
 source = test.read()
 test.close()
 result = parse.parse(source)
 print("parsed:",result)
-print("symbols:",symbolstack)
-print("operators:",opstack)
-print("types:",typestack)
-print("constants:",constant_table)
+#print("symbols:",symbolstack)
+#print("operators:",opstack)
+#print("types:",typestack)
 # print("quads:",cuadruplos)
-print("vars:",var_table)
-print("jumps:", jumpstack)
+#print("vars:",var_table)
+#print("jumps:", jumpstack)
+print(functiondirectory)
