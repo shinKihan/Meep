@@ -470,6 +470,24 @@ def p_factor(p):
     else:
         p[0] = p[1]
 
+def p_verify(p):
+    """
+    verify :
+    """
+    for function in functiondirectory:
+        if function[0] == p[-1]:
+            currentfunction.append(function)
+            break
+    if not function: 
+        print(f'오류: {p[-1]} 함수가 존재하지 않습니다.')
+        quit()
+
+def p_processcall(p):
+    """
+    processcall :
+    """
+    processcall(p)
+
 def p_additionalparam(p):
     """
     additionalparam : additionalparam COMA logic 
@@ -488,9 +506,9 @@ def p_callparam(p):
 
 def p_call(p):
     """
-    call : ID LPAREN callparam RPAREN
+    call : ID verify LPAREN callparam processcall RPAREN
     """
-    p[0] = p[1],p[2],p[3],p[4]
+    p[0] = p[1],p[3],p[4],p[6]
 
 def p_boolean(p):
     """
@@ -555,9 +573,9 @@ def p_createstats(p):
     """
     #return here
     if p[-1][0] == 'suljib':
-        cuadruplos.append([p[-1][0], None, check(p[-1][2], 'variable')[1], check(p[-1][4], 'variable')[1]])
+        cuadruplos.append([p[-1][0].upper(), None, check(p[-1][2], 'variable')[1], check(p[-1][4], 'variable')[1]])
     else:
-        cuadruplos.append([p[-1][0], None, None, check(p[-1][2], 'variable')[1]])
+        cuadruplos.append([p[-1][0].upper(), None, None, check(p[-1][2], 'variable')[1]])
 
 def p_stats(p):
     """

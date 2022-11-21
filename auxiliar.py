@@ -3,6 +3,7 @@ from cube import fetch
 
 #compilation stacks
 temp = 0
+currentfunction = []
 env = []
 cuadruplos = []
 opstack = []
@@ -251,26 +252,27 @@ def addparams(p):
     else:
         params, ptype, address = [], None, None
         ids = [id for id in list(flattenids(p[-1])) if id is not None]
+        print(ids)
         size = len(ids)
         for x in range(1, size, 2):
-            if ids[x] == 'jeo':
+            if ids[x-1] == 'jeo':
                 ptype = 'int'
                 address = local_int[0]+local_int[1]
                 local_int[1] += 1
-            elif ids[x] == 'tteuda':
+            elif ids[x-1] == 'tteuda':
                 ptype = 'float'
                 address = local_float[0]+local_float[1]
                 local_float[1] += 1    
-            elif ids[x] == 'kkeun':
+            elif ids[x-1] == 'kkeun':
                 ptype = 'string'
                 address = local_string[0]+local_string[1]
                 local_string[1] += 1
-            elif ids[x] == 'buul':
+            elif ids[x-1] == 'buul':
                 ptype = 'bool'
                 address = local_bool[0]+local_bool[1]
                 local_bool[1] += 1
             params.append([ptype, address])
-            var_table.append(ids[x-1], address, ptype, 1)
+            var_table.append([ids[x], address, ptype, 1])
         functiondirectory[-1][4] = params
 
 def endfun():
@@ -280,6 +282,7 @@ def endfun():
     params = [[0, 0, 0, 0],[0, 0, 0, 0]]
     tempvar, aux = var_table.copy(), []
     size = len(tempvar)
+    print(tempvar)
     for x in range(size):
         if local_int[0] <= tempvar[x][1] < local_float[0]:
             params[0][0] += 1
@@ -304,8 +307,13 @@ def endfun():
     if recursivecalls:
         for x in range(len(recursivecalls)):
             call, info = recursivecalls[x][0], recursivecalls[x][1]
-            era =  cuadruplos[call]
-            # return here
+            current = cuadruplos[call]
+            print('here:' , current)
+            print('here:' , call)
+            print('here:' , recursivecalls)
+            era = finishcall(current, *info, do_modify = True)
+            current[2], current[3] = era[2], era[3]
+
     local_int[1] = 0
     local_float[1] = 0
     local_string[1] = 0
@@ -318,3 +326,107 @@ def endfun():
 
     var_table = aux
     cuadruplos.append(['Endfun', None, None, None])
+
+def finishcall(era, ids, temp, do_modify = False):
+    addresses = [[],[]]
+    era[2], era[3] = addresses[0], addresses[1]
+    params, locals, aux = [], None, None 
+    if currentfunction[0][5] is not None:
+        locals = currentfunction[0][5][0].copy()
+    else:
+        aux = [ids, temp.copy()]
+    for x in range(len(ids)):
+        pt = currentfunction[0][4][x][0]
+        param = temp.pop()
+        if pt != param[1]:
+            print('오류: 호출 및 함수와 다른 매개변수')
+            quit()
+        if pt == 'int':
+            pt=0
+        elif pt == 'float':
+            pt=1
+        elif pt == 'string':
+            pt=2
+        elif pt == 'bool':
+            pt=3
+        var = check(param[0], 'constant')
+        if var is False:
+            var = check(param[0], 'variable')
+        if currentfunction[0][5] is not None and local_int[0] <= var[1] < temporal_int[0]:
+            locals[pt] -= 1
+            addresses[0].append(var[1])
+        if do_modify is False:
+            params.append(['PARAM', None, var[1], x-1])
+    if currentfunction[0][5] is not None:
+        for x in range(len(locals)):
+            if locals[x] == 0:
+                continue
+            for y in range(locals[x]):
+                if x == 0:
+                    address = local_int[0]+local_int[1]
+                    local_int[1] += 1
+                elif x == 1:
+                    address = local_float[0]+local_float[1]
+                    local_float[1] += 1
+                elif x == 2:
+                    address = local_string[0]+local_string[1]
+                    local_string[1] += 1
+                elif x == 3:
+                    address = local_bool[0]+local_bool[1]
+                    local_bool[1] += 1
+                addresses[0].append(address)
+        size = currentfunction[0][5][1]
+        for x in range(len(size)):
+            if size[x] == 0:
+                continue
+            for _ in range(size[x]):
+                if x == 0:
+                    type = 'int'
+                elif x == 1:
+                    type = 'float'
+                elif x == 2:
+                    type = 'string'
+                elif x == 3:
+                    type = 'bool'
+                address = addtemporary(type, False)
+                addresses[1].append(address)
+        if do_modify is False:
+            cuadruplos.append(era)
+    else:
+        cuadruplos.append(['ERA', currentfunction[0][0], None, None])
+        recursivecalls.append([len(cuadruplos)-1, aux])
+    if do_modify is False:
+        for cuad in params:
+            cuadruplos.append(cuad)
+        cuadruplos.append(['GoSub', None, None, currentfunction[0][2]])
+    else:
+        return era
+
+def processcall(p):
+    global currentfunction
+    if p[-1] is None:
+        if currentfunction[0][4] is None:
+            cuadruplos.append(['GoSub', None, None, currentfunction[0][2]])
+            currentfunction = []
+            return
+        else:
+            print(f'오류: 매개변수 {currentfunction[0][4]} 제외')
+            quit()
+    
+    ids = list((flattenids(p[-1])))
+    removeid, size = [], len(ids)
+    for x in range(size):
+        if ids[x] is None:
+            removeid.append(ids[x])
+    ids =  [id for id in ids if id not in removeid]
+    if ids and currentfunction[0][4] is None:
+        print('오류: 인수가 예상되지 않았습니다.')
+        quit()
+
+    if len(ids) != len(currentfunction[0][4]):
+        print('오류: 현재 인수가 유효하지 않음')
+        quit()
+    
+    temp = [(symbolstack.pop(), typestack.pop()) for _ in ids]
+    era = ['ERA', currentfunction[0][0], None, None]
+    finishcall(era, ids, temp)

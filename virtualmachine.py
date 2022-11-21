@@ -1,4 +1,5 @@
-import os
+import numpy as np
+import seaborn as sns
 from auxiliar import global_int, global_float, global_string, global_bool
 from auxiliar import local_int, local_float, local_string, local_bool
 from auxiliar import temporal_int, temporal_float, temporal_string, temporal_bool
@@ -37,6 +38,7 @@ gbl = {
     'variables'  : [[],[],[],[]],
     'constants'  : constants
 }
+
 lcl = {
     'variables'  : [[],[],[],[]],
     'temporales' : [[],[],[],[]]
@@ -82,29 +84,29 @@ def memoryop(address, value = None):
         space = address-global_bool[0]
 
     elif local_int[0] <= address < local_float[0]:
-        memory = lcl['variables'][0]
+        memory = memorystack[-1]['variables'][0]
         space = address-local_int[0]
     elif local_float[0] <= address < local_string[0]:
-        memory = lcl['variables'][1]
+        memory = memorystack[-1]['variables'][1]
         space = address-local_float[0]
     elif local_string[0] <= address < local_bool[0]:
-        memory = lcl['variables'][2]
+        memory = memorystack[-1]['variables'][2]
         space = address-local_string[0]
     elif local_bool[0] <= address < temporal_int[0]:
-        memory = lcl['variables'][3]
+        memory = memorystack[-1]['variables'][3]
         space = address-local_bool[0]
 
     elif temporal_int[0] <= address < temporal_float[0]: 
-        memory = lcl['temporales'][0]
+        memory = memorystack[-1]['temporales'][0]
         space = address-temporal_int[0]
     elif temporal_float[0] <= address < temporal_string[0]:
-        memory = lcl['temporales'][1]
+        memory = memorystack[-1]['temporales'][1]
         space = address-temporal_float[0]
     elif temporal_string[0] <= address < temporal_bool[0]:
-        memory = lcl['temporales'][2]
+        memory = memorystack[-1]['temporales'][2]
         space = address-temporal_string[0]
     elif temporal_bool[0] <= address < 17000:
-        memory = lcl['temporales'][3]
+        memory = memorystack[-1]['temporales'][3]
         space = address-temporal_bool[0]
     else:
         memory = gbl['constants']
@@ -117,21 +119,25 @@ def memoryop(address, value = None):
             return find(memory, space = space)
 
 IP = 0
+pointerstack = [IP]
+functionstack = []
+memorystack = [lcl]
+
 #print(cuadruplos[IP],gbl,'\n',lcl)
 while True:
-    current = cuadruplos[IP]
+    current = cuadruplos[pointerstack[-1]]
     if current[0] == 'End':
         break
     elif current[0] == 'GotoMain':
-        IP = int(current[3][:-1])
+        pointerstack[-1] = int(current[3][:-1])
     elif current[0] == 'Goto':
-        IP = int(current[3][:-1])
+        pointerstack[-1] = int(current[3][:-1])
     elif current[0] == 'GotoF':
         result = memoryop(int(current[1]))
         if result is False:
-            IP = int(current[3][:-1])
+            pointerstack[-1] = int(current[3][:-1])
         else:
-            IP+=1
+            pointerstack[-1]+=1
     elif current[0] == 'Read':
         address = int(current[3][:-1])
         val = input()
@@ -152,7 +158,7 @@ while True:
             print('error')
             quit()
         memoryop(address, value)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == 'Write':
         address = int(current[3][:-1])
@@ -161,12 +167,12 @@ while True:
             print('Error')
             quit()
         print(message)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '=':
         value = memoryop(int(current[2]))
         memoryop(int(current[3][:-1]), value)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '+':
         addresses = int(current[1]), int(current[2])
@@ -174,7 +180,7 @@ while True:
         right = memoryop(addresses[1])
         result = left+right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '-':
         addresses = int(current[1]), int(current[2])
@@ -182,7 +188,7 @@ while True:
         right = memoryop(addresses[1])
         result = left-right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '*':
         addresses = int(current[1]), int(current[2])
@@ -190,7 +196,7 @@ while True:
         right = memoryop(addresses[1])
         result = left*right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '/':
         addresses = int(current[1]), int(current[2])
@@ -201,7 +207,7 @@ while True:
             quit()
         result = left/right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '//':
         addresses = int(current[1]), int(current[2])
@@ -212,7 +218,7 @@ while True:
             quit()
         result = int(left//right)
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '^':
         addresses = int(current[1]), int(current[2])
@@ -220,7 +226,7 @@ while True:
         right = memoryop(addresses[1])
         result = float(left**right)
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
     
     elif current[0] == '==':
         addresses = int(current[1]), int(current[2])
@@ -228,7 +234,7 @@ while True:
         right = memoryop(addresses[1])
         result = left==right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '>':
         addresses = int(current[1]), int(current[2])
@@ -236,7 +242,7 @@ while True:
         right = memoryop(addresses[1])
         result = left>right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '<':
         addresses = int(current[1]), int(current[2])
@@ -244,7 +250,7 @@ while True:
         right = memoryop(addresses[1])
         result = left<right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '>=':
         addresses = int(current[1]), int(current[2])
@@ -252,7 +258,7 @@ while True:
         right = memoryop(addresses[1])
         result = left>=right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '<=':
         addresses = int(current[1]), int(current[2])
@@ -260,7 +266,7 @@ while True:
         right = memoryop(addresses[1])
         result = left<=right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
     
     elif current[0] == '!=':
         addresses = int(current[1]), int(current[2])
@@ -268,7 +274,7 @@ while True:
         right = memoryop(addresses[1])
         result = left!=right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
     
     elif current[0] == '|':
         addresses = int(current[1]), int(current[2])
@@ -278,7 +284,7 @@ while True:
         print(left, right)
         result = left or right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
 
     elif current[0] == '&':
         addresses = int(current[1]), int(current[2])
@@ -286,10 +292,87 @@ while True:
         right = memoryop(addresses[1])
         result = left and right
         memoryop(int(current[3][:-1]), result)
-        IP+=1
+        pointerstack[-1]+=1
+
+    elif current[0] == 'HABJI':
+        value = memoryop(int(current[1]))
+        result = sum(value)
+        print(result)
+        pointerstack[-1]+=1
+    
+    elif current[0] == 'BUN':
+        value = memoryop(int(current[1]))
+        result = min(value)
+        print(result)
+        pointerstack[-1]+=1
+    
+    elif current[0] == 'CHOE':
+        value = memoryop(int(current[1]))
+        result = max(value)
+        print(result)
+        pointerstack[-1]+=1
+    
+    elif current[0] == 'PYEONG':
+        value = memoryop(int(current[1]))
+        value = np.array(value)
+        result = np.mean(value)
+        print(result)
+        pointerstack[-1]+=1
+    
+    elif current[0] == 'JUNG':
+        value = memoryop(int(current[1]))
+        value = np.array(value)
+        result = np.median(value)
+        print(result)
+        pointerstack[-1]+=1
+    
+    elif current[0] == 'BYEON':
+        value = memoryop(int(current[1]))
+        value = np.array(value)
+        result = np.var(value)
+        print(result)
+        pointerstack[-1]+=1
+
+    elif current[0] == 'HISEU':
+        value = memoryop(int(current[1]))
+        value = np.array(value)
+        result = sns.histplot(data = value)
+        print(result)
+        pointerstack[-1]+=1
+    
+    elif current[0] == 'SULJIB':
+        addresses = int(current[1]), int(current[2])
+        x = memoryop(addresses[0])
+        y = memoryop(addresses[1])
+        result = sns.barplot(x, y)
+        pointerstack[-1]+=1
+    
+    elif current[0] == 'GoSub':
+        params = functionstack[0][1]
+        functionstack = functionstack[1:]
+        newmemory = {
+            'variables'  : [[],[],[],[]],
+            'temporales' : [[],[],[],[]]
+        }
+        memorystack.append(newmemory)
+        for x in range(len(params)):
+            memoryop(params[x][1], functionstack[x])
+        functionstack = []
+        pointerstack[-1] += 1
+        pointerstack.append(int(current[3][:-1]))
+    
+    elif current[0] == 'Return':
+        current[0] = '='
+        memorystack.pop()
+        pointerstack.pop()
+
+    elif current[0] == 'Endfun':
+        memorystack.pop()
+        pointerstack.pop()
+        pointerstack[-1] += 1
 
     else:
-        IP+=1
+        pointerstack[-1]+=1
     #print(cuadruplos[IP-1],gbl,'\n',lcl)
 print('finished execution')
 print(gbl)
