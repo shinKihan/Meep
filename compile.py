@@ -1,6 +1,7 @@
 import ply.yacc as yacc
 from lexer import tokens
 from auxiliar import *
+import json
 
 #Begining of grammar
 def p_prog(p):
@@ -14,14 +15,15 @@ def p_endprog(p):
     endprog :
     """
     cuadruplos.append(['End', None, None, None])
-    export = constant_table+['qu']+cuadruplos
-    with open(f'{p[-5]}.obj','w') as file:
-        for cuad in export:
-            if len(cuad) == 4:
-                line = f'{cuad[0]},{cuad[1]},{cuad[2]},{cuad[3]}\n'
-            else:
-                line = f'{cuad[0]},{cuad[1]}\n'
-            file.write(line)
+    obj = {}
+    fd = []
+    for function in functiondirectory[1:]:
+        fd.append([function[x] for x in [0, 4, 5]])
+    obj['functions'] = fd 
+    obj['constants'] = constant_table
+    obj['cuadruplos'] = cuadruplos
+    with open(f'{p[-5]}.json','w') as file:
+        json.dump(obj, file, ensure_ascii=False, indent=2)
 
 def p_env(p):
     """
@@ -116,21 +118,65 @@ def p_statement(p):
     """
     p[0] = p[1]
 
+def p_creatematrix(p):
+    '''
+    creatematrix :
+    '''
+    dimensioncounter[0] += 1
+    dimensionhandle(dimensioncounter[0])
+
 def p_dimension(p):
     """
-    dimension : COLON logic
+    dimension : COLON logic creatematrix
               | empty
     """
     if p[1]:
         p[0] = p[1],p[2]
 
+def p_createarray(p):
+    '''
+    createarray :
+    '''
+    id = symbolstack.pop()
+    type = typestack.pop()
+
+    if not dimensions:
+        print('오류: 크기가 없습니다.')
+        quit()
+    else:
+        dimenstionstack.append([id, 1])
+        opstack.append('[')
+
+def p_evaluate(p):
+    '''
+    evaluate :
+    '''
+    if typestack[-1] != 'int':
+        print('오류: 차원이 int가 아닙니다.')
+        quit()
+    dimensioncounter.append(1)
+    dimensionhandle(dimensioncounter[0])
+
+def p_endarray(p):
+    '''
+    endarray :
+    '''
+    if dimensioncounter[0] == 1 and type(dimensions[0][1]) == list:
+        print('오류: 오류 치수')
+        quit()
+    aux = symbolstack.pop()
+    pointer = addtemporary('pointer')
+    base = finder(dimensions[0])
+    cuadruplos.append(['++', finder(aux), base, pointer])
+    opstack.pop()
+
 def p_dimvar(p):
     """
-    dimvar : LBRKT logic dimension RBRKT
+    dimvar : LBRKT createarray logic evaluate dimension RBRKT endarray
            | empty
     """
     if p[1]:
-        p[0] = p[1],p[2],p[3],p[4]
+        p[0] = p[1],p[3],p[4],p[5]
 
 #variable logic
 def p_addvariable(p):
@@ -143,6 +189,9 @@ def p_addvariable(p):
         quit()
     symbolstack.append(var[0])
     typestack.append(var[2])
+    # if type(var[3][1]) == list or var[3][0][1] > 0:
+    #     dimensions.append(var)
+    #     addconstant(var[1], 'int', False)
 
 def p_var(p):
     """
@@ -239,16 +288,17 @@ def p_return(p):
     return : RETURN expression
     """
     p[0] = p[1],p[2]
-    if env < 1:
+    if env[0] < 0:
         print("오류: 이 컨텍스트에서 반환할 수 없습니다.")
         quit()
     type = typestack.pop()
-    if (type == 'int' and env > 0) or (type == 'float' and env != 1) \
-        or (type == 'string' and env != 2) or (type == 'bool' and env != 3): 
+    if (type == 'int' and env[0] > 0) or (type == 'float' and env[0] != 1) \
+        or (type == 'string' and env[0] != 2) or (type == 'bool' and env[0] != 3): 
         print("오류: 유형 불일치.")
         quit()
-    #return here
-    cuadruplos.append(['Return', None, None, finder()])
+    result = finder()
+    function = finder(functiondirectory[-1][0])
+    cuadruplos.append(['Return', None, result, function])
 
 def p_type(p):
     """
@@ -361,7 +411,7 @@ def p_expression(p):
     """
     expression : logic SEMICOLON
     """
-    p[0] = p[1],p[2]
+    p[0] = p[1]
 
 def p_oplogic(p):
     """
@@ -375,10 +425,7 @@ def p_logic(p):
     logic : comp
           | logic oplogic pushoperator comp addexpresion
     """ 
-    if len(p)>2:
-        p[0] = p[1],p[2],p[4]
-    else:
-        p[0] = p[1]
+    p[0] = p[1]
 
 def p_opcomp(p):
     """
@@ -396,10 +443,7 @@ def p_comp(p):
     comp : sum
          | comp opcomp pushoperator sum addexpresion
     """ 
-    if len(p)>2:
-        p[0] = p[1],p[2],p[4]
-    else:
-        p[0] = p[1]
+    p[0] = p[1]
 
 def p_opsum(p):
     """
@@ -413,10 +457,7 @@ def p_sum(p):
     sum : term
         | sum opsum pushoperator term addexpresion
     """
-    if len(p)>2:
-        p[0] = p[1],p[2],p[4]
-    else:
-        p[0] = p[1]
+    p[0] = p[1]
 
 def p_opterm(p):
     """
@@ -433,20 +474,14 @@ def p_term(p):
     term : exp 
          | term opterm pushoperator exp addexpresion
     """
-    if len(p)>2:
-        p[0] = p[1],p[2],p[4]
-    else:
-        p[0] = p[1]
+    p[0] = p[1]
 
 def p_exp(p):
     """
     exp : unary
         | exp EXPONENT pushoperator unary addexpresion
     """
-    if len(p)>2:
-        p[0] = p[1],p[2],p[4]
-    else:
-        p[0] = p[1]
+    p[0] = p[1]
 
 def p_unary(p):
     """
@@ -454,19 +489,39 @@ def p_unary(p):
           | MINUS pushoperator factor addnegative
     """
     if len(p)>2:
-        p[0] = p[1],p[2]
+        p[0] = p[3]
     else:
         p[0] = p[1]
+
+def p_addcall(p):
+    '''
+    addcall :
+    '''
+    currentfunction = []
+    for function in functiondirectory:
+        if function[0] == p[-1][0]:
+            currentfunction.append(function)
+    if currentfunction[0][1] >= 0:
+        if currentfunction[0][1] == 0:
+            type = 'int'
+        elif currentfunction[0][1] == 1:
+            type = 'float'
+        elif currentfunction[0][1] == 2:
+            type = 'string'
+        elif currentfunction[0][1] == 3:
+            type = 'bool'    
+        address = addtemporary(type)
+        cuadruplos.append(['=', None, finder(currentfunction[0][0]), address])
 
 def p_factor(p):
     """
     factor : LPAREN pushoperator logic RPAREN popparen
            | value
            | var
-           | call
+           | call addcall
     """
-    if len(p)>2:
-        p[0] = p[1],p[3],p[4]
+    if len(p)>3:
+        p[0] = p[3]
     else:
         p[0] = p[1]
 
@@ -493,17 +548,25 @@ def p_additionalparam(p):
     additionalparam : additionalparam COMA logic 
                     | empty
     """
-    if p[1]:
-        p[0] = p[1],p[2],p[3]
+    if len(p)>2:
+        if p[1] is None:
+            p[0] = p[3]
+        p[0] = p[1], p[3]
+    else:
+        p[0] = p[1]
 
 def p_callparam(p):
     """
     callparam : logic additionalparam
               | empty
     """
-    if p[1]:
-        p[0] = p[1],p[2]
-
+    if len(p)>2:
+        if p[2] is None:
+            p[0] = p[1]
+        p[0] = p[1], p[2]
+    else:
+        p[0] = p[1]
+        
 def p_call(p):
     """
     call : ID verify LPAREN callparam processcall RPAREN
@@ -597,12 +660,13 @@ parse = yacc.yacc()
 test = open(input("컴파일할 이름 파일: "))
 source = test.read()
 test.close()
-result = parse.parse(source)
-print("parsed:",result)
+parse.parse(source)
+# print("parsed:",result)
 #print("symbols:",symbolstack)
 #print("operators:",opstack)
 #print("types:",typestack)
 # print("quads:",cuadruplos)
 #print("vars:",var_table)
 #print("jumps:", jumpstack)
-print(functiondirectory)
+# print(functiondirectory)
+print('너프 컴파일')

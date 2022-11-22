@@ -5,6 +5,8 @@ from cube import fetch
 temp = 0
 currentfunction = []
 env = []
+dimensions = []
+dimensioncounter = []
 cuadruplos = []
 opstack = []
 symbolstack=[]
@@ -16,6 +18,7 @@ constant_table = []
 var_table = []
 functiondirectory = []
 recursivecalls = []
+dimenstionstack = []
 
 #memory addresses
 global_int = [1_000,0]
@@ -252,7 +255,6 @@ def addparams(p):
     else:
         params, ptype, address = [], None, None
         ids = [id for id in list(flattenids(p[-1])) if id is not None]
-        print(ids)
         size = len(ids)
         for x in range(1, size, 2):
             if ids[x-1] == 'jeo':
@@ -282,7 +284,6 @@ def endfun():
     params = [[0, 0, 0, 0],[0, 0, 0, 0]]
     tempvar, aux = var_table.copy(), []
     size = len(tempvar)
-    print(tempvar)
     for x in range(size):
         if local_int[0] <= tempvar[x][1] < local_float[0]:
             params[0][0] += 1
@@ -308,9 +309,6 @@ def endfun():
         for x in range(len(recursivecalls)):
             call, info = recursivecalls[x][0], recursivecalls[x][1]
             current = cuadruplos[call]
-            print('here:' , current)
-            print('here:' , call)
-            print('here:' , recursivecalls)
             era = finishcall(current, *info, do_modify = True)
             current[2], current[3] = era[2], era[3]
 
@@ -356,7 +354,7 @@ def finishcall(era, ids, temp, do_modify = False):
             locals[pt] -= 1
             addresses[0].append(var[1])
         if do_modify is False:
-            params.append(['PARAM', None, var[1], x-1])
+            params.append(['PARAM', None, var[1], x+1])
     if currentfunction[0][5] is not None:
         for x in range(len(locals)):
             if locals[x] == 0:
@@ -426,7 +424,28 @@ def processcall(p):
     if len(ids) != len(currentfunction[0][4]):
         print('오류: 현재 인수가 유효하지 않음')
         quit()
-    
+
     temp = [(symbolstack.pop(), typestack.pop()) for _ in ids]
     era = ['ERA', currentfunction[0][0], None, None]
     finishcall(era, ids, temp)
+
+def dimensionhandle(dimension):
+    value = finder(symbolstack[-1])
+    if type(dimensions[0][1]) != list:
+        current = dimensions[0]
+    else:
+        current = dimensions[0][0]
+    left = check(current[0][0], 'constant')
+    right = check(current[0][1], 'constant')
+    cuadruplos.append(['Verify', value, left[1], right[1]])
+    if type(dimensions[0][1]) == list:
+        symbolstack.pop() 
+        typestack.pop()
+        temporal = addtemporary('int')
+        cuadruplos.append(['*', value, right[1], temporal])
+    if dimension > 1:
+        right = [finder(symbolstack.pop()), typestack.pop()]
+        left = [finder(symbolstack.pop()), typestack.pop()]
+        temporal = addtemporary('int')
+        cuadruplos.append(['+', left[0], right[0], temporal])
+        

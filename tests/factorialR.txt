@@ -1,0 +1,16 @@
+sijag factorialR:
+
+gijun jeo factorial(jeo n){
+    man(n==1){
+        banpum n;
+    }
+    banpum n*factorial(n-1);
+}
+
+muhyoui gibon(){
+    heolag jeo n;
+    inswae("escribir numero");
+    iblyeog(n);
+    inswae(factorial(n));
+}
+kkeut

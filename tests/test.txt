@@ -1,17 +1,16 @@
 sijag meep:
 
-gijun muhyoui test(jeo a){
+gijun muhyoui test(jeo n){
     heolag jeo sepa;
-    sepa = 20;
+    sepa = 20+n;
     2+2;
-    test(sepa);
     inswae(sepa);
 }
 
 
 muhyoui gibon(){
     heolag jeo hola;
-   
+    hola = 1;
     test(hola);
 }
 kkeut

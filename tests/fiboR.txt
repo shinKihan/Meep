@@ -1,0 +1,16 @@
+sijag fiboR:
+
+gijun jeo fibo(jeo n){
+    man(n<=1){
+        banpum n;
+    }
+    banpum fibo(n-1)+fibo(n-2);
+}
+
+muhyoui gibon(){
+    heolag jeo n;
+    inswae("escribir numero");
+    iblyeog(n);
+    inswae(fibo(n));
+}
+kkeut
