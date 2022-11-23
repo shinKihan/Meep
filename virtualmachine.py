@@ -5,6 +5,7 @@ from auxiliar import local_int, local_float, local_string, local_bool
 from auxiliar import temporal_int, temporal_float, temporal_string, temporal_bool
 from auxiliar import constant_int, constant_float, constant_string, constant_bool
 import json
+import matplotlib.pyplot as plt
 
 filename = input('실행할 이름 파일: ')
 file = open(filename,'r')
@@ -130,13 +131,11 @@ def main():
                         local_int[0] <= address < local_float[0] or \
                             temporal_int[0] <= address < temporal_float[0] or \
                                 constant_int[0] <= address < constant_float[0]:
-                    type = 'int'
                     value = int(val)
                 elif global_float[0] <= address < global_string[0] or \
                         local_float[0] <= address < local_string[0] or \
                             temporal_float[0] <= address < temporal_string[0] or \
                                 constant_float[0] <= address < constant_string[0]:
-                    type = 'float'
                     value = float(val)
             except:
                 print('오류: 예상치 못한 유형')
@@ -295,38 +294,39 @@ def main():
             pointerstack[-1]+=1
         
         elif current[0] == 'PYEONG':
-            value = memoryop(current[1])
-            value = np.array(value)
+            value = memoryop(current[3])
+            value = np.array([value])
             result = np.mean(value)
             print(result)
             pointerstack[-1]+=1
         
         elif current[0] == 'JUNG':
-            value = memoryop(current[1])
-            value = np.array(value)
+            value = memoryop(current[3])
+            value = np.array([value])
             result = np.median(value)
             print(result)
             pointerstack[-1]+=1
         
         elif current[0] == 'BYEON':
-            value = memoryop(current[1])
-            value = np.array(value)
+            value = memoryop(current[3])
+            value = np.array([value])
             result = np.var(value)
             print(result)
             pointerstack[-1]+=1
 
         elif current[0] == 'HISEU':
-            value = memoryop(current[1])
-            value = np.array(value)
+            value = memoryop(current[3])
+            value = np.array([value])
             result = sns.histplot(data = value)
-            print(result)
+            plt.show()
             pointerstack[-1]+=1
         
         elif current[0] == 'SULJIB':
-            addresses = current[1], current[2]
+            addresses = current[2], current[3]
             x = memoryop(addresses[0])
             y = memoryop(addresses[1])
-            result = sns.barplot(x, y)
+            result = sns.barplot(x=[x], y=[y])
+            plt.show()
             pointerstack[-1]+=1
         
         elif current[0] == 'GoSub':

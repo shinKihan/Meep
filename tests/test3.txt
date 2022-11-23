@@ -1,16 +1,11 @@
-sijag meep:
-heolag jeo hola;
-heolag jeo hi;
+sijag test3:
+
 muhyoui gibon(){
-    4+4-2/10^2/2//4 > 3;
-    heolag jeo hola;
-    inswae(hola);
-    man(2>3){
-       tong : habji(hola);
-    }tto {
-        dong (3<10){
-          2+10;  
-        }
-    }
+  heolag jeo hola;
+  heolag jeo meep;
+  hola = 5;
+  meep = 10;
+  tong : hiseu(hola);
+  tong : suljib(hola, meep);
 }
 kkeut
